@@ -1,115 +1,318 @@
 <!DOCTYPE html>
-<html>
+<html lang="ne">
 <head>
-    <title>NEPSE Live Data</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>NEPSE Live - Unofficial API Demo</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .stock { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .symbol { font-weight: bold; }
-        .price { color: #666; }
-        .change { font-weight: bold; }
-        .positive { color: green; }
-        .negative { color: red; }
-        h1 { text-align: center; color: #333; }
-        h2 { font-size: 1.2em; margin: 0 0 10px 0; color: #555; }
-        .last-update { text-align: center; font-size: 12px; color: #999; margin-top: 20px; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f1f5f9;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 1.5rem;
+            padding-bottom: 3rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+            border-bottom: 2px solid #eef2ff;
+            padding-bottom: 0.75rem;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0f172a, #1e40af);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #1e40af;
+        }
+        .status-badge {
+            background: #f8fafc;
+            border-radius: 40px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #334155;
+        }
+        .stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #eef2ff;
+        }
+        .stock-info {
+            flex: 2;
+        }
+        .stock-symbol {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #0f172a;
+        }
+        .stock-name {
+            font-size: 0.7rem;
+            color: #5b6e8c;
+            margin-top: 2px;
+        }
+        .stock-data {
+            text-align: right;
+        }
+        .price {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        .positive { color: #0b5e42; background: #e6f7f0; }
+        .negative { color: #b91c1c; background: #fee9e7; }
+        .neutral { color: #555; background: #f1f3f4; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+            font-size: 0.9rem;
+        }
+        .last-update {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1rem;
+            color: #5b6e8c;
+            background: #eef2ff60;
+            padding: 0.6rem;
+            border-radius: 2rem;
+        }
+        button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:active { transform: scale(0.98); background: #0f2b6d; }
+        .footnote {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #6c86a3;
+            margin-top: 1.2rem;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>📈 NEPSE Market Data</h1>
-    <div class="card" id="gainersCard">
-        <h2>Top Gainers 📊</h2>
-        <div id="gainers">Loading...</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h1>📊 NEPSE Live</h1>
+        <div class="status-badge" id="marketStatusBadge">🔄 loading...</div>
     </div>
-    <div class="card" id="losersCard">
-        <h2>Top Losers 📉</h2>
-        <div id="losers">Loading...</div>
+    <p style="margin-bottom: 1.2rem; color: #2c3e66; font-size:0.85rem">पछिल्लो कारोबार तथ्यांक • अस्थायी API प्रयोग</p>
+
+    <!-- Market Summary Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📋 बजार सारांश</h2>
+        </div>
+        <div id="summaryContent">Loading ...</div>
     </div>
-    <div class="card" id="summaryCard">
-        <h2>Market Summary 📋</h2>
-        <div id="summary">Loading...</div>
+
+    <!-- Top Gainers Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2>🚀 Top Gainers</h2>
+        </div>
+        <div id="gainersContent">Loading ...</div>
     </div>
-    <button onclick="fetchData()">⟳ Refresh Data</button>
-    <div class="last-update" id="lastUpdate">Last update: --</div>
+
+    <!-- Top Losers Card -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📉 Top Losers</h2>
+        </div>
+        <div id="losersContent">Loading ...</div>
+    </div>
+
+    <button id="refreshBtn">⟳ ताजा डाटा (Refresh)</button>
+    <div id="updateTime" class="last-update">⏳ पछिल्लो अपडेट: प्राप्त भइरहेको छ</div>
+    <div class="footnote">
+        ⚡ नि: शुल्क अनाधिकृत API मार्फत डाटा प्राप्त गरिएको (शैक्षिक/गैर-व्यावसायिक प्रयोग)<br>
+        बजार बन्द हुँदा पनि पछिल्लो उपलब्ध क्यास देखिन सक्छ।
+    </div>
 </div>
 
 <script>
-    async function fetchData() {
-        document.getElementById('gainers').innerHTML = 'Loading...';
-        document.getElementById('losers').innerHTML = 'Loading...';
-        document.getElementById('summary').innerHTML = 'Loading...';
-        
+    // Base URL of the free hosted NEPSE unofficial API
+    const API_BASE = "https://nepseapi.surajrimal.dev";
+
+    // Helper: Fetch with timeout
+    async function fetchAPI(endpoint) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         try {
-            const gainersRes = await fetch('https://nepseapi.surajrimal.dev/TopGainers');
-            const gainers = await gainersRes.json();
-            displayGainers(gainers);
-        } catch(e) { document.getElementById('gainers').innerHTML = 'Error loading gainers'; }
-        
-        try {
-            const losersRes = await fetch('https://nepseapi.surajrimal.dev/TopLosers');
-            const losers = await losersRes.json();
-            displayLosers(losers);
-        } catch(e) { document.getElementById('losers').innerHTML = 'Error loading losers'; }
-        
-        try {
-            const summaryRes = await fetch('https://nepseapi.surajrimal.dev/Summary');
-            const summary = await summaryRes.json();
-            displaySummary(summary);
-        } catch(e) { document.getElementById('summary').innerHTML = 'Error loading summary'; }
-        
-        document.getElementById('lastUpdate').innerHTML = `Last update: ${new Date().toLocaleString()}`;
+            const res = await fetch(`${API_BASE}${endpoint}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            console.warn(`API Error ${endpoint}:`, err);
+            return null;
+        }
     }
-    
-    function displayGainers(data) {
-        if (!data || data.length === 0) {
-            document.getElementById('gainers').innerHTML = 'No data available';
-            return;
+
+    // Format numbers if possible
+    function formatNumber(value) {
+        if (value === undefined || value === null) return "—";
+        if (typeof value === 'number') return value.toLocaleString('en-IN');
+        return value;
+    }
+
+    // Render Summary
+    function renderSummary(data) {
+        if (!data || Object.keys(data).length === 0) {
+            return `<div class="info-row">🚫 बजार सारांश उपलब्ध छैन (बजार बन्द / सेवा अनुपलब्ध)</div>`;
+        }
+        let rows = '';
+        const importantKeys = ['Total Turnover Rs:', 'Total Traded Shares', 'Total Transactions', 'Total Scrips Traded'];
+        for (let key of importantKeys) {
+            if (data[key] !== undefined) {
+                let displayKey = key.replace('Total ', '').replace(' Rs:', '');
+                if (key.includes('Turnover')) displayKey = 'कुल कारोबार (रू.)';
+                if (key.includes('Shares')) displayKey = 'कुल कित्ता';
+                if (key.includes('Transactions')) displayKey = 'कुल कारोबार संख्या';
+                if (key.includes('Scrips')) displayKey = 'कम्पनी संख्या';
+                rows += `<div class="info-row"><span>${displayKey}</span><span>${formatNumber(data[key])}</span></div>`;
+            }
+        }
+        if (data['NEPSE Index'] !== undefined) {
+            rows += `<div class="info-row"><span>नेप्से परिसूचक</span><span>${formatNumber(data['NEPSE Index'])}</span></div>`;
+        }
+        return rows || `<div class="info-row">⚠️ सारांश डाटा आउन सकेन।</div>`;
+    }
+
+    // Render Gainers/Losers
+    function renderStockList(data, type) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            return `<div class="stock-row">⛔ ${type === 'gainers' ? 'गेनर्स' : 'लुजर्स'} उपलब्ध छैनन् ।</div>`;
         }
         let html = '';
-        for(let i = 0; i < Math.min(data.length, 10); i++) {
-            const s = data[i];
-            html += `<div class="stock">
-                <span class="symbol">${s.symbol || 'N/A'}</span>
-                <span class="price">₹${s.ltp || '0'}</span>
-                <span class="change positive">+${s.change || '0'}</span>
-            </div>`;
+        for (let i = 0; i < Math.min(data.length, 8); i++) {
+            const item = data[i];
+            const symbol = item.symbol || item.companySymbol || 'N/A';
+            const company = item.companyName || item.name || '';
+            let price = item.ltp !== undefined ? item.ltp : (item.closePrice !== undefined ? item.closePrice : '—');
+            let change = item.change !== undefined ? item.change : (item.points !== undefined ? item.points : 0);
+            let changeClass = (change > 0) ? 'positive' : (change < 0 ? 'negative' : 'neutral');
+            let changeText = (change > 0 ? '+' : '') + change;
+            html += `
+                <div class="stock-row">
+                    <div class="stock-info">
+                        <div class="stock-symbol">${symbol}</div>
+                        ${company ? `<div class="stock-name">${company.substring(0, 20)}</div>` : ''}
+                    </div>
+                    <div class="stock-data">
+                        <div class="price">रू ${price !== '—' ? price : '—'}</div>
+                        <div class="change ${changeClass}">${changeText}</div>
+                    </div>
+                </div>
+            `;
         }
-        document.getElementById('gainers').innerHTML = html;
+        return html;
     }
-    
-    function displayLosers(data) {
-        if (!data || data.length === 0) {
-            document.getElementById('losers').innerHTML = 'No data available';
-            return;
+
+    // Also fetch market status if possible (optional but cool)
+    async function updateMarketStatus() {
+        const statusEl = document.getElementById('marketStatusBadge');
+        try {
+            const res = await fetch(`${API_BASE}/MarketStatus`);
+            const data = await res.json();
+            if (data && data.isOpen !== undefined) {
+                statusEl.innerHTML = data.isOpen ? '✅ बजार खुला' : '🔒 बजार बन्द (पछिल्लो डाटा)';
+                statusEl.style.background = data.isOpen ? '#e0f2fe' : '#f1f3f4';
+            } else {
+                statusEl.innerHTML = '📅 पछिल्लो सेसन';
+            }
+        } catch (e) {
+            statusEl.innerHTML = '📅 पछिल्लो कारोबार नै';
         }
-        let html = '';
-        for(let i = 0; i < Math.min(data.length, 10); i++) {
-            const s = data[i];
-            html += `<div class="stock">
-                <span class="symbol">${s.symbol || 'N/A'}</span>
-                <span class="price">₹${s.ltp || '0'}</span>
-                <span class="change negative">${s.change || '0'}</span>
-            </div>`;
-        }
-        document.getElementById('losers').innerHTML = html;
     }
-    
-    function displaySummary(data) {
-        let html = '';
-        if(data.turnover) html += `<div class="stock"><span>Total Turnover</span><span>₹${data.turnover}</span></div>`;
-        if(data.index) html += `<div class="stock"><span>NEPSE Index</span><span>${data.index}</span></div>`;
-        if(html === '') html = 'Summary not available';
-        document.getElementById('summary').innerHTML = html;
+
+    // Main loader
+    async function loadAllData() {
+        document.getElementById('summaryContent').innerHTML = '⏳ लोड हुँदै...';
+        document.getElementById('gainersContent').innerHTML = '⏳ लोड हुँदै...';
+        document.getElementById('losersContent').innerHTML = '⏳ लोड हुँदै...';
+        
+        const [summaryRaw, gainersRaw, losersRaw] = await Promise.all([
+            fetchAPI('/Summary'),
+            fetchAPI('/TopGainers'),
+            fetchAPI('/TopLosers')
+        ]);
+
+        // Update DOM
+        document.getElementById('summaryContent').innerHTML = renderSummary(summaryRaw);
+        document.getElementById('gainersContent').innerHTML = renderStockList(gainersRaw, 'gainers');
+        document.getElementById('losersContent').innerHTML = renderStockList(losersRaw, 'losers');
+        
+        const now = new Date();
+        document.getElementById('updateTime').innerHTML = `🕒 पछिल्लो अपडेट: ${now.toLocaleString('ne-NP', { timeZone: 'Asia/Kathmandu' })}`;
+        
+        // also try market status
+        await updateMarketStatus();
     }
-    
-    fetchData();
+
+    // Refresh on load + button
+    window.addEventListener('DOMContentLoaded', () => {
+        loadAllData();
+        const btn = document.getElementById('refreshBtn');
+        if (btn) btn.addEventListener('click', () => loadAllData());
+    });
 </script>
 </body>
 </html>
