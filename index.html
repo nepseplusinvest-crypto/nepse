@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NEPSE Live Data</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: auto; }
+        .card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .stock { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .symbol { font-weight: bold; }
+        .price { color: #666; }
+        .change { font-weight: bold; }
+        .positive { color: green; }
+        .negative { color: red; }
+        h1 { text-align: center; color: #333; }
+        h2 { font-size: 1.2em; margin: 0 0 10px 0; color: #555; }
+        .last-update { text-align: center; font-size: 12px; color: #999; margin-top: 20px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📈 NEPSE Market Data</h1>
+    <div class="card" id="gainersCard">
+        <h2>Top Gainers 📊</h2>
+        <div id="gainers">Loading...</div>
+    </div>
+    <div class="card" id="losersCard">
+        <h2>Top Losers 📉</h2>
+        <div id="losers">Loading...</div>
+    </div>
+    <div class="card" id="summaryCard">
+        <h2>Market Summary 📋</h2>
+        <div id="summary">Loading...</div>
+    </div>
+    <button onclick="fetchData()">⟳ Refresh Data</button>
+    <div class="last-update" id="lastUpdate">Last update: --</div>
+</div>
+
+<script>
+    async function fetchData() {
+        document.getElementById('gainers').innerHTML = 'Loading...';
+        document.getElementById('losers').innerHTML = 'Loading...';
+        document.getElementById('summary').innerHTML = 'Loading...';
+        
+        try {
+            const gainersRes = await fetch('https://nepseapi.surajrimal.dev/TopGainers');
+            const gainers = await gainersRes.json();
+            displayGainers(gainers);
+        } catch(e) { document.getElementById('gainers').innerHTML = 'Error loading gainers'; }
+        
+        try {
+            const losersRes = await fetch('https://nepseapi.surajrimal.dev/TopLosers');
+            const losers = await losersRes.json();
+            displayLosers(losers);
+        } catch(e) { document.getElementById('losers').innerHTML = 'Error loading losers'; }
+        
+        try {
+            const summaryRes = await fetch('https://nepseapi.surajrimal.dev/Summary');
+            const summary = await summaryRes.json();
+            displaySummary(summary);
+        } catch(e) { document.getElementById('summary').innerHTML = 'Error loading summary'; }
+        
+        document.getElementById('lastUpdate').innerHTML = `Last update: ${new Date().toLocaleString()}`;
+    }
+    
+    function displayGainers(data) {
+        if (!data || data.length === 0) {
+            document.getElementById('gainers').innerHTML = 'No data available';
+            return;
+        }
+        let html = '';
+        for(let i = 0; i < Math.min(data.length, 10); i++) {
+            const s = data[i];
+            html += `<div class="stock">
+                <span class="symbol">${s.symbol || 'N/A'}</span>
+                <span class="price">₹${s.ltp || '0'}</span>
+                <span class="change positive">+${s.change || '0'}</span>
+            </div>`;
+        }
+        document.getElementById('gainers').innerHTML = html;
+    }
+    
+    function displayLosers(data) {
+        if (!data || data.length === 0) {
+            document.getElementById('losers').innerHTML = 'No data available';
+            return;
+        }
+        let html = '';
+        for(let i = 0; i < Math.min(data.length, 10); i++) {
+            const s = data[i];
+            html += `<div class="stock">
+                <span class="symbol">${s.symbol || 'N/A'}</span>
+                <span class="price">₹${s.ltp || '0'}</span>
+                <span class="change negative">${s.change || '0'}</span>
+            </div>`;
+        }
+        document.getElementById('losers').innerHTML = html;
+    }
+    
+    function displaySummary(data) {
+        let html = '';
+        if(data.turnover) html += `<div class="stock"><span>Total Turnover</span><span>₹${data.turnover}</span></div>`;
+        if(data.index) html += `<div class="stock"><span>NEPSE Index</span><span>${data.index}</span></div>`;
+        if(html === '') html = 'Summary not available';
+        document.getElementById('summary').innerHTML = html;
+    }
+    
+    fetchData();
+</script>
+</body>
+</html>
